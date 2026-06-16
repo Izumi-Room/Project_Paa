@@ -1,0 +1,173 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Smart Courier — Pathfinding Simulator</title>
+  <meta name="description" content="Simulasi pencarian jalur kurir pintar menggunakan algoritma A*, Dijkstra, dan BFS. Proyek PAA." />
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="styles.css" />
+</head>
+<body>
+
+  <!-- ═══ HEADER ═══ -->
+  <header id="appHeader">
+    <div class="header-inner">
+      <div class="header-brand">
+        <div class="brand-icon"><i class="fas fa-route"></i></div>
+        <div>
+          <h1>Smart Courier</h1>
+          <p class="header-sub">Pathfinding Simulator &mdash; A* &bull; Dijkstra &bull; BFS</p>
+        </div>
+      </div>
+      <div class="header-badge">
+        <span class="badge-paa">Proyek PAA</span>
+      </div>
+    </div>
+  </header>
+
+  <!-- ═══ MAIN LAYOUT ═══ -->
+  <main id="appMain">
+
+    <!-- ── LEFT: CANVAS AREA ── -->
+    <section id="canvasSection">
+      <div class="canvas-card">
+        <div class="canvas-toolbar">
+          <div class="toolbar-left">
+            <span id="statusIndicator" class="status-dot idle"></span>
+            <span id="statusText" class="status-label">Siap</span>
+          </div>
+          <div class="toolbar-right">
+            <span id="gridSizeLabel" class="toolbar-info">Grid: 30×40</span>
+          </div>
+        </div>
+        <canvas id="gridCanvas"></canvas>
+        <div class="canvas-hint">
+          <i class="fas fa-mouse-pointer"></i> Klik = Pindahkan Start &nbsp;|&nbsp;
+          <i class="fas fa-hand-pointer"></i> Shift+Klik = Pindahkan Goal
+        </div>
+      </div>
+    </section>
+
+    <!-- ── RIGHT: CONTROL PANEL ── -->
+    <aside id="controlPanel">
+
+      <!-- Algoritma -->
+      <div class="panel-section">
+        <h3 class="panel-title"><i class="fas fa-microchip"></i> Algoritma</h3>
+        <div class="algo-buttons">
+          <button id="btnAlgoAStar" class="algo-btn active" data-algo="astar">A*</button>
+          <button id="btnAlgoDijkstra" class="algo-btn" data-algo="dijkstra">Dijkstra</button>
+          <button id="btnAlgoBFS" class="algo-btn" data-algo="bfs">BFS</button>
+        </div>
+      </div>
+
+      <!-- Kecepatan -->
+      <div class="panel-section">
+        <h3 class="panel-title"><i class="fas fa-gauge-high"></i> Kecepatan</h3>
+        <div class="speed-buttons">
+          <button class="speed-btn" data-speed="slow">Lambat</button>
+          <button class="speed-btn active" data-speed="medium">Sedang</button>
+          <button class="speed-btn" data-speed="fast">Cepat</button>
+          <button class="speed-btn" data-speed="instant">Instan</button>
+        </div>
+      </div>
+
+      <!-- Pilih Peta -->
+      <div class="panel-section">
+        <h3 class="panel-title"><i class="fas fa-map"></i> Pilih Peta</h3>
+        <div class="map-buttons">
+          <button class="map-btn active" data-map="procedural">Acak</button>
+          <button class="map-btn" data-map="map_game">Map 1</button>
+          <button class="map-btn" data-map="map_update">Map 2</button>
+          <button class="map-btn" data-map="map_peta">Map 3</button>
+        </div>
+      </div>
+
+      <!-- Kontrol Utama -->
+      <div class="panel-section">
+        <h3 class="panel-title"><i class="fas fa-gamepad"></i> Kontrol</h3>
+        <div class="control-buttons">
+          <button id="btnStart" class="ctrl-btn btn-start"><i class="fas fa-play"></i> Mulai Simulasi</button>
+          <button id="btnReset" class="ctrl-btn btn-reset"><i class="fas fa-rotate-right"></i> Reset</button>
+          <button id="btnRandomize" class="ctrl-btn btn-random"><i class="fas fa-dice"></i> Acak Peta Baru</button>
+          <button id="btnCompare" class="ctrl-btn btn-compare"><i class="fas fa-scale-balanced"></i> Bandingkan 3 Algoritma</button>
+        </div>
+      </div>
+
+      <!-- Statistik -->
+      <div class="panel-section">
+        <h3 class="panel-title"><i class="fas fa-chart-bar"></i> Statistik</h3>
+        <div class="stats-grid">
+          <div class="stat-item">
+            <span class="stat-label">Status</span>
+            <span id="statStatus" class="stat-value status-idle">Siap</span>
+          </div>
+          <div class="stat-item">
+            <span class="stat-label">Panjang Jalur</span>
+            <span id="statPathLen" class="stat-value">—</span>
+          </div>
+          <div class="stat-item">
+            <span class="stat-label">Node Dikunjungi</span>
+            <span id="statVisited" class="stat-value">—</span>
+          </div>
+          <div class="stat-item">
+            <span class="stat-label">Waktu Eksekusi</span>
+            <span id="statTime" class="stat-value">—</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Legenda -->
+      <div class="panel-section legend-section">
+        <h3 class="panel-title"><i class="fas fa-swatchbook"></i> Legenda</h3>
+        <div class="legend-grid">
+          <div class="legend-item"><span class="legend-color" style="background:#FFB028"></span> Kurir (Start)</div>
+          <div class="legend-item"><span class="legend-color" style="background:#FF5050"></span> Customer (Goal)</div>
+          <div class="legend-item"><span class="legend-color" style="background:#28A0DC"></span> Frontier (Open)</div>
+          <div class="legend-item"><span class="legend-color" style="background:#6E32B4"></span> Visited (Closed)</div>
+          <div class="legend-item"><span class="legend-color" style="background:#2ECC71"></span> Jalur Terpendek</div>
+          <div class="legend-item"><span class="legend-color" style="background:#2D2D3C"></span> Obstacle</div>
+        </div>
+      </div>
+    </aside>
+  </main>
+
+  <!-- ═══ COMPARISON MODAL ═══ -->
+  <div id="comparisonOverlay" class="modal-overlay hidden">
+    <div class="modal-card">
+      <div class="modal-header">
+        <div>
+          <h2><i class="fas fa-scale-balanced"></i> Perbandingan Performa Algoritma</h2>
+          <p class="modal-sub">Menjalankan BFS, Dijkstra, dan A* pada peta yang sama secara instan.</p>
+        </div>
+        <button id="btnCloseModal" class="modal-close"><i class="fas fa-xmark"></i></button>
+      </div>
+      <div class="modal-body">
+        <table class="compare-table">
+          <thead>
+            <tr>
+              <th>Algoritma</th>
+              <th>Status</th>
+              <th>Panjang Rute</th>
+              <th>Node Dikunjungi</th>
+              <th>Waktu (ms)</th>
+              <th></th>
+            </tr>
+          </thead>
+          <tbody id="compareTableBody"></tbody>
+        </table>
+        <div id="compareConclusion" class="compare-conclusion"></div>
+      </div>
+      <div class="modal-footer">
+        <span class="modal-hint">Klik di luar area atau tombol &times; untuk menutup</span>
+      </div>
+    </div>
+  </div>
+
+  <script src="main.js"></script>
+</body>
+</html>
